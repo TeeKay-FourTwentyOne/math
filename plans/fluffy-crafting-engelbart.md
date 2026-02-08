@@ -1,118 +1,128 @@
-# Implementation Plan: R(B₂₁, B₂₂) Ramsey Search - Round 2
+# Implementation Plan: Step 7 GCP Deployment for 6D Hénon-Heiles Benchmark
 
 ## Summary
 
-Fix a critical bug in the blue neighbor formula and prepare the codebase for searching n=22.
+Create a new `step7_gcp/` directory in `C:\Projects\physics` with self-contained scripts to deploy the LP+PINN solver to Google Cloud Platform for the 6D Hénon-Heiles benchmark.
 
-## Critical Bug
-
-**Location**: `ramsey-book-graphs/ramsey_core.py` lines 207, 224, 237
-
-**Current (WRONG)**:
-```python
-blue_common = (N - 2) - common
-```
-
-**Correct (inclusion-exclusion)**:
-```python
-blue_common = (N - 2) - deg_u - deg_v + common
-```
-
-Where:
-- `d1 = |D11| + |D12|` (degree of V1 vertices)
-- `d2 = |D22| + |D12|` (degree of V2 vertices)
-
-This bug makes blue constraints ~3x stricter than they should be. All prior searches used incorrect constraints.
+**Constraints:**
+- ADD only - no modifications to existing files (20+ hour training run in progress)
+- Self-contained training script - no imports from existing project code
+- All computation on GCP, not locally
 
 ---
 
-## Implementation Steps
+## Files to Create
 
-### Step 1: Fix `verify_construction()` in `ramsey_core.py`
+All files go in `C:\Projects\physics\step7_gcp\`:
 
-1. Compute degrees at start of function:
-   ```python
-   d1 = len(G.D11) + len(G.D12)
-   d2 = len(G.D22) + len(G.D12)
-   ```
-
-2. Update line 207 (V1-V1 blue edges):
-   ```python
-   blue_common = (N - 2) - d1 - d1 + common
-   ```
-
-3. Update line 224 (V2-V2 blue edges):
-   ```python
-   blue_common = (N - 2) - d2 - d2 + common
-   ```
-
-4. Update line 237 (V1-V2 blue edges):
-   ```python
-   blue_common = (N - 2) - d1 - d2 + common
-   ```
-
-### Step 2: Add Blue Formula Tests in `test_core.py`
-
-Add brute-force blue neighbor counting:
-```python
-def blue_common_brute(G, u, v):
-    """Count vertices that are NOT adjacent to either u or v."""
-    count = 0
-    for w in range(G.N):
-        if w != u and w != v:
-            if not G.adjacent(u, w) and not G.adjacent(v, w):
-                count += 1
-    return count
-```
-
-Add test class `TestBlueNeighborFormula`:
-- Test that formula matches brute force for random graphs
-- Test the mathematical identity: `red_common + blue_common + deg_u + deg_v - 2*adjacent(u,v) = N - 2`
-
-### Step 3: Add D22 = Complement(D11) Mode (Optional Enhancement)
-
-Add `use_complement_D22` parameter to `BlockCirculantGraph`:
-- When enabled, D22 = Z_m \ {0} \ D11 (reduces search space by ~2^21)
-- Update `SearchState` in `solver_heuristic.py` to support this mode
-- Remove D22 moves from neighbor generation when in complement mode
-
-### Step 4: Add Algebraic Seeding (Optional Enhancement)
-
-Add to `solver_heuristic.py`:
-```python
-def quadratic_residues(m):
-    return {(x * x) % m for x in range(1, m)}
-```
-
-Use QR(43) as initial seed for n=22 search even though 43 ≡ 3 (mod 4).
-
----
-
-## Files to Modify
-
-| File | Changes |
+| File | Purpose |
 |------|---------|
-| `ramsey_core.py` | Fix blue formula in `verify_construction()` |
-| `test_core.py` | Add `TestBlueNeighborFormula` tests |
-| `solver_heuristic.py` | Add complement mode + algebraic seeding (optional) |
-| `solver_sat.py` | Fix blue encoding (lower priority, same bug) |
+| `README.md` | User instructions for GCP setup and deployment |
+| `gcp_setup.sh` | Creates GCS bucket and Spot VM with L4 GPU |
+| `startup_script.sh` | VM startup script - downloads code, starts training |
+| `train_henon_heiles.py` | Self-contained training script (~600 lines) |
+| `monitor.sh` | Check training progress from local machine |
+| `cleanup.sh` | Tear down GCP resources when done |
+
+---
+
+## Key Implementation Details
+
+### 1. `train_henon_heiles.py` Architecture
+
+Based on the instructions template, with hyperparameters aligned to Step 6:
+
+```
+Network: 8 hidden layers x 512 neurons (matches Step 6)
+Activation: Tanh
+Input: 6 (position coordinates)
+Output: 12 (real + imaginary momentum components)
+
+Loss functions:
+- physics_loss: QHJE residual (p² + iℏ∇·p = 2m(E-V))
+- curl_loss: Irrotationality (∂pᵢ/∂xⱼ = ∂pⱼ/∂xᵢ)
+
+Hyperparameters:
+- Learning rate: 1e-4
+- Collocation points: 100,000 per epoch
+- Max epochs: 50,000
+- Checkpoint interval: 1000 epochs
+```
+
+### 2. Hénon-Heiles Potential
+
+```python
+V(x₁,...,x₆) = ½Σᵢxᵢ² + λΣᵢ(xᵢ²xᵢ₊₁ - xᵢ₊₁³/3)
+```
+
+With periodic boundary (x₇ = x₁) and λ = 0.111803 (1/√80).
+
+### 3. GCP Configuration
+
+```
+VM: g2-standard-8 (L4 GPU) or n1-standard-8 + T4
+Provisioning: Spot (preemptible) - ~$0.25-0.40/hr
+Region: us-central1-a
+Boot disk: 100GB SSD with PyTorch Deep Learning VM image
+```
+
+### 4. Preemption Handling
+
+- Checkpoints saved to GCS every 30 minutes via cron
+- Startup script checks for existing checkpoints and resumes
+- VM set to STOP (not DELETE) on termination
+
+---
+
+## Design Decision: Template vs Full Step 6 Architecture
+
+The instructions provide a simplified template without:
+- Learnable poles
+- Supervision loss
+- Quantization loss
+
+**Recommendation: Use the template approach** because:
+1. Hénon-Heiles has no obvious supervision target (unlike coupled oscillator with alpha_matrix)
+2. Simpler architecture is easier to debug on GCP
+3. Template is explicitly designed for this benchmark
+4. Can always iterate if 2% accuracy target isn't met
 
 ---
 
 ## Verification
 
-1. Run `python -m pytest test_core.py -v` - all tests should pass
-2. Run blue formula sanity check with small n (n=4,5,6)
-3. Verify known solutions for n ≤ 21 still work (if we have solution data)
-4. Run short heuristic search for n=6 to validate end-to-end
+After deployment:
+
+1. **VM health**: `./monitor.sh status` returns RUNNING
+2. **Training started**: `./monitor.sh log` shows epoch progress
+3. **Checkpoints**: `./monitor.sh checkpoints` shows files in GCS
+4. **Energy convergence**: E should decrease from 3.0 toward ~2.97
+5. **Final results**: Energy within 2% of 2.97 a.u. (target: 2.91-3.03)
+
+**Success criteria** (from instructions):
+- Final energy: 2.95-2.99 a.u.
+- Below harmonic ZPE (3.0): YES
+- Error vs ~2.97: < 2%
 
 ---
 
-## Priority
+## Implementation Steps
 
-1. **Critical**: Fix blue formula bug (Step 1)
-2. **High**: Add tests to catch this bug (Step 2)
-3. **Medium**: Complement mode (Step 3)
-4. **Low**: Algebraic seeding, SAT solver fixes (Step 4)
+1. Create `C:\Projects\physics\step7_gcp\` directory
+2. Write `README.md` with prerequisites and workflow
+3. Write `gcp_setup.sh` (bucket creation, VM creation)
+4. Write `startup_script.sh` (download code, start training, cron sync)
+5. Write `train_henon_heiles.py` (self-contained ~600 lines)
+6. Write `monitor.sh` (log, checkpoints, results, ssh, status commands)
+7. Write `cleanup.sh` (delete VM and bucket with confirmation)
 
-After the fix, the system will be ready to run searches for n=22.
+---
+
+## Estimated GCP Cost
+
+| Configuration | Hourly (Spot) | 24hr Total |
+|---------------|---------------|------------|
+| g2-standard-8 (L4) | $0.25-0.40 | $6-10 |
+| n1-standard-8 + T4 | $0.15-0.25 | $4-6 |
+
+Expected training time: ~20 hours → **$5-8 total**
