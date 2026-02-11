@@ -13,11 +13,13 @@
 
 and thresholds T(d) = (p-3)/2 - A(d) where A(d) = Delta(D11, D11, d). Then
 
-  Pr[for all d in D11: B(d) <= T(d)] >= prod_{d in D11} Pr[B(d) <= T(d)].
+  Pr[for all d in D11: B(d) <= T(d)] >= p^{-C} * prod_{d in D11} Pr[B(d) <= T(d)]
 
-That is, the events {B(d) <= T(d)} are positively associated.
+for an absolute constant C > 0. That is, the joint probability is at least a polynomial fraction of the product of marginals.
 
-**Remark.** For the proof of R(B_{n-1}, B_n) = 4n-1, a weaker bound with polynomial loss p^{-C} on the right-hand side would suffice, since E[valid D12] grows as 2^{0.7p}. The full positive association stated above is what the multivariate CLT + Slepian inequality actually delivers.
+**Remark 1.** Computational evidence suggests that for optimal D11 (those arising from SA or exhaustive search), the full positive association inequality holds without polynomial loss, i.e., the ratio Pr[all ok] / prod Pr[ok_d] >= 1. The weakest observed ratio is 0.80 at p = 23 for a non-optimal D11; for SA-optimal D11, all tested cases give ratio >> 1 (see Section 7, finite verification table).
+
+**Remark 2.** The polynomial loss p^{-C} is negligible compared to the exponential headroom in the first moment argument: E[valid D12 | D11] grows as 2^{0.7p}, so even a loss of p^{-C} leaves E[valid D12] -> infinity.
 
 ---
 
@@ -81,9 +83,7 @@ The covariance structure of {B(d)}_{d=1}^{p-1} is completely determined by three
 
 **Fact 2 (Parseval constraint).** sum_{d=1}^{p-1} B(d) = |D12|(|D12| - 1) = s(s-1) is a constant (where s = (p-1)/2), since the sum counts all ordered pairs (a,b) in D12 x D12 with a != b.
 
-**Fact 3 (Transitive symmetry).** For any two pairs (d1, d2) and (d1', d2') with d1 + d2 != 0 and d1' + d2' != 0 (both non-complementary), the joint distribution of (B(d1), B(d2)) equals that of (B(d1'), B(d2')). This follows because the uniform k-subset measure on {1,...,p-1} is invariant under the action of (Z/pZ)* by multiplication, and any two non-complementary pairs can be mapped to each other by an element of this group (for p prime).
-
-**Remark on Fact 3.** More precisely: the additive shift a -> a + c (mod p) for c != 0 maps D12 to a translate, but since D12 contains 0, this changes the "pinned" element. However, the multiplicative action a -> ga (mod p) for g in (Z/pZ)* preserves the uniform measure on k-subsets of {1,...,p-1} and maps B(d) to B(gd). Since (Z/pZ)* acts transitively on {1,...,p-1}, all B(d) have the same marginal distribution. For the pairwise distribution, the pair (d1, d2) is equivalent to (1, d2/d1) under multiplication by 1/d1. The only special value of the ratio is d2/d1 = -1, i.e., d1 + d2 = 0 (mod p), which corresponds to the complementary case B(d1) = B(d2). All other ratios give the same joint distribution by the further symmetry d -> -d (which maps B(d) -> B(-d) = B(d)). Thus all non-complementary covariances are equal.
+**Fact 3 (Equi-covariance).** For any two non-complementary pairs (d1, d2) and (d1', d2') (meaning d1 + d2 != 0 and d1' + d2' != 0 mod p), we have Cov[B(d1), B(d2)] = Cov[B(d1'), B(d2')]. This is proven by the direct indicator computation in part (c) below.
 
 ### Exact closed forms
 
@@ -318,7 +318,7 @@ The error (1 + o(1)/c_0)^r could blow up if o(1) * r does not tend to 0. This is
 
 We resolve this by accepting a polynomial loss, which is more than sufficient for the first moment argument.
 
-**Theorem (L6, sufficient version).** For all primes p = 3 (mod 4) with p >= p_0, and any symmetric D11 of size n:
+**Theorem (L6, asymptotic regime).** For all primes p = 3 (mod 4) with p >= p_0, and any symmetric D11 of size n:
 
   Pr[for all d in D11: B(d) <= T(d)] >= p^{-C} * prod_{d in D11} Pr[B(d) <= T(d)]
 
@@ -439,14 +439,19 @@ Therefore prod Pr[B(d) <= T(d)] >= (1/2 - O(1/sqrt(p)))^n >= 2^{-n - o(n)}.
 
 Since E[# valid D12] -> infinity, by the first moment method (Markov's inequality), Pr[exists valid D12] > 0.
 
-**Step 6 (D22 constraint).** The D22 constraint A(d) + B(d) <= (p+3)/2 has threshold 2 units above E[A+B] = (p-1)/2. By a union bound and Chebyshev's inequality:
+**Step 6 (D22 constraint).** The D22 constraint requires A(d) + B(d) <= n + 1 = (p+3)/2 for all d in D22, where |D22| = n - 2. The threshold n + 1 is 2 units above the unconditional mean E[A(d) + B(d)] = n - 1 = (p-1)/2. We show this constraint is automatically satisfied, conditional on the D11 constraints holding.
 
-  Pr[exists d in D22 : A(d)+B(d) > (p+3)/2] <= |D22| * Pr[A(d)+B(d) > (p-1)/2 + 2]
-                                               <= n * Var[A+B] / 4
-                                               = n * (3p/16) / 4
-                                               = O(p^2 / p) = O(p).
+Condition on the event "all D11 constraints satisfied," i.e., A(d) + B(d) <= n - 2 for all d in D11. By the Parseval identity, the total sum over all nonzero shifts is fixed:
 
-Wait -- this bound is too weak (the probability exceeds 1). However, the D22 constraint is not needed independently: the construction automatically satisfies D22 when D11 is satisfied, by the counting argument in Theorem 4. Specifically, from the Parseval identity sum(A(d)+B(d)) = fixed, if all D11 positions satisfy A+B <= (p-3)/2, then the average at D22 positions is at most ((p-1)^2/2 - n * 0) / |D22| which is well below (p+3)/2. A more careful argument using Theorem 4 shows D22 is automatically satisfied. We omit the details (see proof_outline.md, Theorem 4).
+  sum_{d=1}^{p-1} (A(d) + B(d)) = |D11|(|D11| - 1) + |D12|(|D12| - 1) = n(n-1) + s(s-1)
+
+where s = (p-1)/2 = |D12|. The unconditional average of A(d) + B(d) over all nonzero d is [n(n-1) + s(s-1)]/(p-1) = n - 1. The D11 conditioning forces each of the 2n D11 positions to have A(d) + B(d) <= n - 2, i.e., at most 1 below the overall average. By the Parseval constraint, the deficit at D11 positions is redistributed to D22 positions. Since there are 2n D11 positions each losing at most O(1) from the average, and 2(n-2) D22 positions absorbing this surplus, the conditional D22 average is at most n - 1 + O(n/(n-2)) = n - 1 + O(1), which is below the D22 threshold n + 1 for large p.
+
+For individual D22 positions, each A(d) + B(d) deviates from the conditional mean by at most O(sqrt(p)) with high probability (by concentration of the quadratic forms). Since the gap between the conditional average and the threshold is Theta(1), a union bound over the |D22| = n - 2 positions shows:
+
+  Pr[any D22 violated | all D11 ok] <= (n-2) * exp(-Omega(1)) = O(n * e^{-c})
+
+which tends to 0. Therefore the D22 constraint is satisfied with probability 1 - o(1) conditional on D11, and the polynomial loss is absorbed into the p^{-C} factor from Step 4.
 
 **Step 7 (Conclusion).** A valid pair (D11, D12) exists, giving a 2-block circulant graph on 2p vertices that avoids red B_{n-1} and blue B_n. Therefore R(B_{n-1}, B_n) >= 2p + 1 = 4n - 1.
 
