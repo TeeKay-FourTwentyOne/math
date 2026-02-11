@@ -15,6 +15,8 @@
 
 **Our contribution**: Lower bound constructions proving R(B_{n-1}, B_n) >= 4n - 1.
 
+**Note on p = 7 (n = 4)**: For p = 7, no 2-block circulant satisfying (S1)-(S3) exists (exhaustive verification, `d11_size_survey.py`). The case n = 4 is handled by prior constructions [Lidicky et al. 2024].
+
 ---
 
 ## 2. Construction Framework
@@ -65,10 +67,10 @@ V1V2 common neighbors at d = |D12| - [d ∈ D12]
 With A(d) = Delta(D11, D11, d) and B(d) = Delta(D12, D12, d):
 
 ```
-V2V2(d) = A(d) + B(-d) + (m - 2 - 2|D11|) + 2·[d ∈ D11]
+V2V2(d) = A(d) + B(d) + (m - 2 - 2|D11|) + 2·[d ∈ D11]
 ```
 
-The V1V1 red edges correspond exactly to the V2V2 blue edges and vice versa. V2V2 is fully determined by the V1V1 autocorrelation values and the D12 autocorrelation at negated arguments.
+The V1V1 red edges correspond exactly to the V2V2 blue edges and vice versa. V2V2 is fully determined by the V1V1 autocorrelation values and the D12 autocorrelation.
 
 **Corollary (V2V2 ≡ V1V1)**: Since B(d) = B(-d) always (Delta(S,S,d) counts ordered pairs (a,b) in S with a-b≡d, and Delta(S,S,-d) counts pairs with b-a≡d, which is the same count), and Delta(D12T, D12T, d) = Delta(D12, D12, -d) = B(d), the V2V2 constraints expressed in terms of A+B are algebraically identical to V1V1. The problem reduces to a SINGLE set of constraints: A(d)+B(d) ≤ threshold for each d. Verified computationally (`n32_feasibility.py`).
 

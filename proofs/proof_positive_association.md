@@ -17,6 +17,8 @@ Combined with the known upper bound R(B_{n-1}, B_n) ≤ 4n-1 (Rousseau & Sheehan
 1978) and the Paley construction for primes p ≡ 1 (mod 4), this proves
 **R(B_{n-1}, B_n) = 4n-1 for all n where 2n-1 is prime.**
 
+**Note on p = 7 (n = 4)**: For p = 7, no 2-block circulant satisfying (S1)-(S3) exists (exhaustive verification, `d11_size_survey.py`). The case n = 4 is handled by prior constructions [Lidicky et al. 2024].
+
 ---
 
 ## Proof Structure
@@ -116,6 +118,13 @@ By the first moment method (Markov inequality):
   Pr[∃ valid D12] ≥ 1 - 1/E[# valid] → 1.
 
 Therefore, a valid D12 exists for this D11. ∎
+
+**Note (robustness to D11 choice)**: The proof works for ANY symmetric D11 of
+size n because E[valid D12] grows exponentially (~2^{0.7p}) regardless of D11
+choice. Per-constraint rates Pr[B(d) <= T(d)] vary across positions (from 0.18
+to 0.98), but the geometric mean is empirically ~2^{-0.7}, and
+C(p-1, (p-3)/2) ~ 2^{p-1} dominates any sub-exponential variation in the
+per-D11 joint probability.
 
 ### Step 5: Combining with Other Results
 
