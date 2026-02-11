@@ -99,7 +99,69 @@ The covariance structure of {B(d)}_{d=1}^{p-1} is completely determined by three
 
 **Proof.** Parts (a) and (b) follow from the identity B(d) = B(p-d) and the exact variance computation (Lemma L3, proven in exact_moments.py using indicator decomposition and Fraction arithmetic; verified against Monte Carlo for p = 7, 11, 19, 23, 31, 127, 997).
 
-For part (c), combine Facts 1-3. By Fact 3, all non-complementary covariances equal some constant c. By Fact 2, Var(sum_{d=1}^{p-1} B(d)) = 0. Expanding:
+For part (c), we prove equi-covariance by direct indicator computation, then derive the closed form from the sum constraint.
+
+**Step 1: Equi-covariance by collision analysis.** Write D12 = {0} ∪ S where S is a uniform random k-subset of {1,...,p-1}, k = (p-3)/2, N = p-1. Using the indicator decomposition from exact_moments.py:
+
+  B(d) = Y_{p-d} + Y_d + Q(d),   where Q(d) = sum_{a in T(d)} Y_a * Y_{a-d}
+
+with T(d) = {1,...,p-1}\{d} and Y_a = 1[a in S]. (Here a-d means (a-d) mod p; note a-d != 0 since a != d, so all indices lie in {1,...,p-1}.)
+
+The product B(d1) * B(d2) decomposes into 9 cross-terms from the 3 + 3 components. For each cross-term, E[product of Y-indicators] depends only on the number of distinct indices in the product, via the hypergeometric falling factorial moments q_j = k^{(j)} / N^{(j)}.
+
+We show that for any two non-complementary pairs (d1, d2) with d1 + d2 != 0 mod p, the 9 cross-terms yield the same value of E[B(d1) * B(d2)].
+
+**Terms (1)-(4)** are products of two standalone indicators:
+- (1) E[Y_{p-d1} * Y_{p-d2}]: These are two distinct indices iff p-d1 != p-d2, i.e., d1 != d2. Contribution: q2.
+- (2) E[Y_{p-d1} * Y_{d2}]: These coincide iff p-d1 = d2, i.e., d1 + d2 = p = 0 mod p. For non-complementary pairs, d1 + d2 != 0, so these are distinct. Contribution: q2.
+- (3) E[Y_{d1} * Y_{p-d2}]: Same analysis as (2). Contribution: q2.
+- (4) E[Y_{d1} * Y_{d2}]: Distinct since d1 != d2. Contribution: q2.
+
+All four terms equal q2 for every non-complementary pair. (For complementary pairs, terms (2) and (3) would give q1 instead.)
+
+**Terms (5)-(8)** are sums of the form sum_b E[Y_c * Y_b * Y_{b-d}] where c is a fixed index and the sum runs over b in T(d). For a given summand, the 3 indices {c, b, b-d} can have 2 or 3 distinct values. Collisions occur when c = b or c = b-d.
+
+Consider term (5): E[Y_{p-d1} * sum_{b in T(d2)} Y_b * Y_{b-d2}]. The index c = p-d1 collides with b when b = p-d1 (always possible since p-d1 in {1,...,p-1} and p-d1 != d2 iff d1 + d2 != 0), and c collides with b-d2 when b = p-d1+d2 (which is in {1,...,p-1}\{d2} iff p-d1+d2 != 0 and p-d1+d2 != d2, i.e., d1 != 0 and d1 != p, both always true). The number and type of collisions is:
+- Generic b (neither b = p-d1 nor b = p-d1+d2): 3 distinct indices, contribution q3. Count: |T(d2)| - 2 = p - 4 (if the two special b-values are distinct, which holds iff d2 != 0, always true).
+- b = p-d1: 2 distinct indices {c, b-d2} = {p-d1, p-d1-d2}. These are distinct iff d2 != 0 (always true). Contribution: q2.
+- b = p-d1+d2: 2 distinct indices {c, b} = {p-d1, p-d1+d2}. These are distinct iff d2 != 0 (always true). Contribution: q2.
+
+Total for term (5): (p-4) * q3 + 2 * q2. This depends on p only, not on (d1, d2).
+
+The same analysis applies to terms (6), (7), and (8): in each case the generic count is p-4 summands contributing q3 and exactly 2 collision summands contributing q2. The total for each is (p-4) * q3 + 2 * q2, independent of (d1, d2).
+
+**Term (9): the Q1 * Q2 double sum.** This is the critical term:
+
+  E[Q(d1) * Q(d2)] = sum_{a in T(d1)} sum_{b in T(d2)} E[Y_a * Y_{a-d1} * Y_b * Y_{b-d2}]
+
+For each (a, b), the 4 indices are {a, a-d1, b, b-d2}. Note a != a-d1 (since d1 != 0) and b != b-d2 (since d2 != 0). Cross-equalities between the two pairs can occur at 4 collision offsets (values of b-a):
+
+  (i)   b = a         (collision a = b),         offset 0
+  (ii)  b = a + d2    (collision a = b - d2),     offset d2
+  (iii) b = a - d1    (collision a - d1 = b),     offset -d1
+  (iv)  b = a-d1+d2   (collision a-d1 = b-d2),   offset d2-d1
+
+These 4 offsets are pairwise distinct iff d1 + d2 != 0 mod p. Proof: offsets (i) and (ii) differ iff d2 != 0 (true). Offsets (i) and (iii) differ iff d1 != 0 (true). Offsets (i) and (iv) differ iff d1 != d2 (true). Offsets (ii) and (iv) differ iff d1 != 0 (true). Offsets (iii) and (iv) differ iff d2 != 0 (true). The only possible coincidence is **(ii) = (iii)**: d2 = -d1 mod p, i.e., d1 + d2 = 0 mod p. For non-complementary pairs, this does not occur, so all 4 offsets are distinct.
+
+We now count, for each collision offset, the number of valid (a, b) pairs and the number of distinct indices:
+
+- **Offset (i), delta = 0 (b = a):** Need a in T(d1) ∩ T(d2), i.e., a in {1,...,p-1}\{d1,d2}. Count: p - 3. Indices: {a, a-d1, a, a-d2} = {a, a-d1, a-d2}. These are 3 distinct since d1 != d2 (so a-d1 != a-d2), d1 != 0 (so a-d1 != a), and d2 != 0 (so a-d2 != a). Contribution per pair: q3.
+
+- **Offset (ii), delta = d2 (b = a+d2):** Need a in T(d1) and b = a+d2 in T(d2). Exclusions from the p-2 values in T(d1): b = 0 iff a = p-d2, and p-d2 != d1 (since d1+d2 != 0), so exclude 1; b = d2 iff a = 0, impossible. Count: p - 3. Indices: {a, a-d1, a+d2, a} = {a, a-d1, a+d2}. These are 3 distinct since d1 != 0 and d2 != 0 and d1 != d2. Contribution: q3.
+
+- **Offset (iii), delta = p-d1 (b = a-d1):** Need a in T(d1) and b = a-d1 in T(d2). Exclusions: b = 0 iff a = d1, already excluded; b = d2 iff a = d1+d2, and d1+d2 != 0 (non-complementary) and d1+d2 != d1 (since d2 != 0), so exclude 1. Count: p - 3. Indices: {a, a-d1, a-d1, a-d1-d2} = {a, a-d1, a-d1-d2}. These are 3 distinct. Contribution: q3.
+
+- **Offset (iv), delta = d2-d1 (b = a-d1+d2):** Need a in T(d1) and b = a-d1+d2 in T(d2). Exclusions: b = 0 iff a = d1-d2, and d1-d2 != 0 (since d1 != d2) and d1-d2 != d1 (since d2 != 0), so exclude 1; b = d2 iff a = d1, already excluded. Count: p - 3. Indices: {a, a-d1, a-d1+d2, a-d1} = {a, a-d1, a-d1+d2}. These are 3 distinct. Contribution: q3.
+
+For the **generic (non-collision) case**, none of the 4 collision conditions hold, so all 4 indices {a, a-d1, b, b-d2} are distinct. Contribution per pair: q4. The count of generic pairs is |T(d1)| * |T(d2)| - 4(p-3) = (p-2)^2 - 4(p-3).
+
+The key point: for every non-complementary pair (d1, d2), the decomposition of term (9) by collision type yields expressions involving only p, q2, q3, q4, and integer counts that depend on p alone (not on d1 or d2). This is because the collision structure is completely determined by the four offsets being distinct, which is guaranteed by d1 + d2 != 0.
+
+**Conclusion**: E[B(d1) * B(d2)] = (sum of terms 1-9) is the same for all non-complementary pairs (d1, d2). Hence Cov[B(d1), B(d2)] = E[B(d1) * B(d2)] - E[B]^2 is the same constant c for all non-complementary pairs.
+
+(This computation is implemented and verified exactly in exact_cross_covariance.py, which confirms the closed form for p = 7, 11, 19, 23, 31, 43, 47, 59, 67, 83, 199, 997.)
+
+**Step 2: Derive c from the sum constraint.** By Fact 2, Var(sum_{d=1}^{p-1} B(d)) = 0. Expanding:
 
   0 = sum_{d1,d2} Cov[B(d1), B(d2)]
     = sum_d Var[B(d)] + sum_{d1 != d2} Cov[B(d1), B(d2)].
@@ -112,7 +174,7 @@ where the first term is the sum of variances, the second is the sum of complemen
 
   c = -2 Var / (p-3) = -2(p-3)(p+1) / (16(p-2)(p-3)) = -(p+1) / (8(p-2)).
 
-Part (d): rho = c / Var = [-( p+1)/(8(p-2))] / [(p-3)(p+1)/(16(p-2))] = -2/(p-3).
+Part (d): rho = c / Var = [-(p+1)/(8(p-2))] / [(p-3)(p+1)/(16(p-2))] = -2/(p-3).
 
 **Computational verification**: All closed forms verified exactly (using Python Fraction arithmetic) for p = 7, 11, 19, 23, 31, 43, 47, 59, 67, 83, 199, 997 in exact_cross_covariance.py. QED
 
