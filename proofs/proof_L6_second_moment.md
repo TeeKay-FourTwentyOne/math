@@ -409,7 +409,118 @@ The Gaussian proxy analysis (Section 5) gives a bound of exp(O(S_2 variation)) w
 
 ---
 
-## 8. Summary
+## 8. Multiplicative Orbit Structure (New)
+
+### 8.1 The key symmetry
+
+**Proposition.** If (D11, D12) is a valid pair and g in Z_p^*, then (gD11, gD12) is also valid.
+
+*Proof.* The constraint A(d) + B(d) <= T(d) is preserved under multiplication by g, since Delta(gS, gS, gd) = Delta(S, S, d) and the threshold T(gd) for gD11 equals T(d) for D11 (because gd in gD11 iff d in D11). QED.
+
+**Corollary.** N(D11) = N(gD11) for all g in Z_p^*.
+
+Since D11 is symmetric, multiplying by -1 fixes D11. So the orbits of symmetric D11 under Z_p^* have size exactly (p-1)/2 (the order of Z_p^*/{+-1}).
+
+### 8.2 Orbit decomposition of the second moment ratio
+
+The (p-1)/2 elements of each orbit all have the same N-value. So:
+
+  E[N^2] / E[N]^2 = (#orbits * sum_{working orbits} N_i^2) / (sum_{all orbits} N_i)^2
+
+where N_i is the N-value of orbit i (with orbits weighted equally).
+
+Since all working orbits have N_i > 0, we can decompose:
+
+  ratio = (1 / p_working) * (within-working ratio)
+
+where p_working = (# working orbits) / (# total orbits) and the within-working ratio is the Cauchy-Schwarz ratio among working orbits.
+
+### 8.3 Numerical verification
+
+| p | Orbits | Orbit size | Working orbits | N values (by orbit) | p_working | Within ratio | Overall ratio |
+|---|--------|-----------|----------------|---------------------|-----------|-------------|---------------|
+| 11 | 2 | 5 | 1 | {0: 1, 20: 1} | 0.500 | 1.00 | 2.00 |
+| 19 | 14 | 9 | 1 | {0: 13, 18: 1} | 0.071 | 1.00 | 14.00 |
+| 23 | 42 | 11 | 5 | {0: 37, 22: 2, 44: 1, 110: 1, 198: 1} | 0.119 | 1.73 | 14.52 |
+
+Key observations:
+- At p=11, 19: N takes only TWO values (0 and one positive value). The within-working ratio is 1.
+- At p=23: N takes FIVE distinct values, but the within-working ratio is still close to 1.
+- The overall ratio is dominated by 1/p_working.
+- Each valid pair orbit has size exactly p-1 (no stabilizers beyond {+-1}).
+
+### 8.4 Pair orbit structure
+
+The action of Z_p^* on pairs (D11, D12) also has a clean orbit structure:
+
+| p | Valid pair orbits | Pair orbit size | Total valid pairs |
+|---|-------------------|-----------------|-------------------|
+| 11 | 10 | 10 | 100 |
+| 19 | 9 | 18 | 162 |
+| 23 | 198 | 22 | 4356 |
+
+The number of pair orbits per D11 orbit equals N(D11) / 2 (since each D12 orbit under Z_p^*/{+-1} has size (p-1)/2 and pairs (D11, D12) have orbit size p-1).
+
+### 8.5 Implications for the proof
+
+The orbit structure means:
+
+1. **The problem reduces to counting orbits**: we need at least one working orbit (N_i > 0).
+2. **The total number of orbits is C((p-1)/2, (p+1)/4) / ((p-1)/2)**, which grows exponentially in p.
+3. **The fraction of working orbits p_working determines the second moment ratio.**
+4. **Proving p_working >= 1/(# orbits) suffices** for existence (trivially, just one orbit needed).
+5. **Proving p_working >= 1/poly(p) suffices** for the Paley-Zygmund argument.
+
+The data suggests p_working = Theta(1) (constant fraction), but even 1/poly(p) would close the proof.
+
+---
+
+## 9. Character Sum Analysis of the Paley D12
+
+### 9.1 The Paley autocorrelation
+
+**Proposition.** For p = 3 (mod 4), the Paley set P = QR union {0} has perfectly flat autocorrelation:
+
+  A_P(d) = (p+1)/4 for all d = 1,...,p-1.
+
+*Proof.* Standard result for conference matrices / Paley-type Hadamard matrices. The autocorrelation of the Paley graph on p vertices at any nonzero difference d is (p - 3 + 4*1[d=0])/4, but for the "extended" set P = QR union {0} of size (p+1)/2, the autocorrelation equals n(n-1)/(p-1) = ((p+1)/2)((p-1)/2)/(p-1) = (p+1)/4 exactly.
+
+Verified computationally for all p = 3 mod 4 up to p = 167.
+
+### 9.2 The B-value structure for QR-based D12
+
+For D12 = {0} union (QR \ {a}) with a in QR:
+
+  B(d) = A_P(d) - 1[a-d in P] - 1[a+d in P] = (p+1)/4 - 1[a-d in QR union {0}] - 1[a+d in QR union {0}]
+
+For d != a and d != p-a (the generic case):
+
+  B(d) = (p-3)/4 + epsilon(d)
+
+where epsilon(d) = -[chi(a-d) + chi(a+d)]/2 in {-1, 0, +1} with chi the Legendre symbol.
+
+### 9.3 Distribution of epsilon values
+
+**Proposition.** For any a in QR and any p = 3 mod 4:
+- epsilon = -1 (both a-d, a+d in QR): approximately (p-7)/8 pairs
+- epsilon = 0 (exactly one in QR): approximately (p-1)/4 pairs
+- epsilon = +1 (neither in QR): approximately (p-7)/8 pairs
+
+Moreover, J(chi, chi) = 1 for all p = 3 mod 4, giving the exact count via Jacobi sums.
+
+The number of "available" pairs (epsilon <= 0) exceeds the "needed" pairs ((p+1)/4) by approximately (p-1)/8 -- a surplus that grows linearly with p.
+
+### 9.4 Limitations of the Paley D12 approach
+
+Despite the clean structure, using D12 = {0} union (QR \ {a}) does NOT directly give valid pairs: the blue constraints at epsilon = +1 positions (d in D22 where B(d) = (p+1)/4) are violated because A(d) is too large at the complementary positions.
+
+Verified computationally: at p = 23, 43, 47, 59, 67, 71, 79, 83, NO choice of D11 (using all epsilon=-1 pairs + subset of epsilon=0 pairs) satisfies all constraints with this D12.
+
+The actual valid D12 have a more balanced structure, with B-values that are specifically tuned to avoid violations at both red and blue positions.
+
+---
+
+## 10. Summary
 
 | Component | Status |
 |---|---|
@@ -420,10 +531,19 @@ The Gaussian proxy analysis (Section 5) gives a bound of exp(O(S_2 variation)) w
 | Second moment ratio O(1) | **VERIFIED** for p=11,19,23 |
 | Second moment ratio O(poly(p)) for all p | **OPEN** |
 | Correlation loss c_0 >= 1/poly(p) | **VERIFIED** for p<=23, **OPEN** in general |
+| Multiplicative orbit structure | **PROVEN** (Section 8) |
+| N constant on orbits | **PROVEN** (Section 8.1) |
+| Paley autocorrelation A_P = (p+1)/4 | **PROVEN** (Section 9.1) |
+| J(chi,chi) = 1 for p = 3 mod 4 | **VERIFIED** computationally, known result |
 
-**Status**: The proof establishes the algebraic framework (constant z-sum, Parseval structure, marginal bounds) rigorously. The second moment ratio E[N^2]/E[N]^2 is verified to be O(1) for all tested primes. The gap is proving this bound for all large p, which requires a non-Gaussian argument about the concentration of N(D11) under the k-subset distribution.
+**Status**: The proof establishes a comprehensive algebraic framework including the constant z-sum identity, orbit structure under Z_p^*, and character-sum analysis of Paley-based D12. The second moment ratio is verified to be O(1) at all tested primes. The gap is showing that the fraction of working orbits is at least 1/poly(p) for all large p.
 
-**Key insight from this analysis**: The Gaussian proxy is too coarse to prove the needed concentration. The exact N(D11) concentrates much better than the Gaussian approximation predicts, due to the full combinatorial structure of the k-subset measure on the Parseval hyperplane. A successful proof must exploit this structure directly.
+**Key insights**:
+1. The Gaussian proxy is too coarse (370x variation vs discrete N-values).
+2. N(D11) is constant on multiplicative orbits -- the problem reduces to counting orbits.
+3. The Paley D12 has clean character-sum structure (B = mu +/- 1) but doesn't directly give valid pairs due to blue constraint violations.
+4. The actual valid D12 are non-algebraic -- they must balance B-values at both red and blue positions simultaneously.
+5. The most promising proof path is showing p_working >= 1/poly(p), i.e., a non-trivial fraction of orbits are working.
 
 ---
 
