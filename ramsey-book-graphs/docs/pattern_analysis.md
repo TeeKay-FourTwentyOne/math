@@ -500,5 +500,60 @@ in minutes for m ~ 50.
 
 ### Coverage summary (n <= 50)
 
-All n <= 26 are now covered (plus n=27 by Paley at q=53).
-n=28 (m=55, composite) in progress (SA best cost = 4 so far).
+All n <= 31 are now covered:
+- Paley proven: n = 3,5,7,9,13,15,19,21,25,27,31 (and infinitely many more)
+- SA verified: n = 4,6,8,10,11,12,14,16,17,18,20,22,23,24,26,28,29,30
+- Prior work: n <= 21
+
+n=32 (m=63 = 9x7) is the first OPEN case. See Section 14 below.
+
+---
+
+## 14. The n=32 Obstacle: Deep Analysis (Session 3)
+
+### V2V2 = V1V1 Identity (General m)
+
+**Theorem**: For ANY m (prime, prime power, or composite), the V2V2 constraints are algebraically identical to V1V1 when expressed in terms of A(d)+B(d).
+
+**Proof**: B(d) := Delta(D12, D12, d) = |{(a,b) in D12xD12 : a-b = d mod m}|.
+Then B(m-d) = |{(a,b) : a-b = -d}| = |{(b,a) : b-a = d}| = B(d).
+Also, Delta(D12T, D12T, d) = Delta(D12, D12, m-d) = B(m-d) = B(d).
+Therefore V2V2(d) = A(d) + B(d) + constant terms, matching V1V1(d).
+
+**Consequence**: The "8 violations" pattern observed in near-solutions is actually 4 independent violations, each counted twice (once in V1V1, once in V2V2).
+
+### Tight counting constraint (General)
+
+For ALL n >= 3, the average A(d)+B(d) for d=1..m-1 equals approximately the binding threshold:
+
+```
+avg = (|D11|^2 - |D11| + |D12|^2 - |D12|) / (m-1)
+```
+
+With the "natural" |D11| ~ (m-1)/2 and |D12| = n-1 = (m-1)/2:
+```
+avg ~ ((m-1)/2)^2 * 2 / (m-1) = (m-1)/2 ~ n-1
+```
+
+The binding threshold is n-2, so avg exceeds threshold by ~1. This is universal.
+
+### n=32 Specific Findings
+
+For m = 63 = 9 x 7:
+
+1. **|D11|=32**: avg A+B = 31.0, threshold = 30, slack = -1.0
+2. **|D11|=30**: avg A+B = 29.03, threshold = 29 (blue), slack = -0.03
+3. **|D11|=28,34**: Much worse (slack -2.2 to -3.1)
+
+Near-solutions (cost=4, i.e., 2 real violations):
+- All violations have excess exactly 1
+- Violated differences form complementary pairs {d, m-d}
+- Exhaustive D12 fix always fails (D11 is the root cause)
+- 100+ seeds across 5 solver variants all converge to same barrier
+
+CRT decomposition (Z_63 = Z_9 x Z_7) classes:
+- Negation maps QR <-> QNR in both Z_9* and Z_7*
+- Symmetric pairs: RR<->NN (18 elements), RN<->NR (18), R0<->N0 (6), 0R<->0N (6), ZR<->ZN (12), Z0<->Z0 (2)
+- All CRT-aware algebraic initializations converge to same cost=4 barrier
+
+**Open question**: Does a valid 2-block circulant construction exist for m=63? The counting argument says the budget is sufficient (capacity 1950 vs need 1922), but the autocorrelation structure may prevent achieving cost=0.

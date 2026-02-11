@@ -1,122 +1,168 @@
-# Agent Team Design: Solving R(B_{n-1}, B_n) = 4n-1
+# Plan: Prove R(B_{n-1}, B_n) = 4n-1 for Primes p = 3 mod 4
 
 ## Context
 
-The goal is to prove R(B_{n-1}, B_n) = 4n-1 for all n, where B_n = K_2 + K̄_n (book graph). The upper bound is proven (Rousseau & Sheehan 1978). The lower bound is verified for n ≤ 22 and when 2n-1 is a prime power ≡ 1 (mod 4). The n=22 case was recently cracked in this repo using informed simulated annealing after discovering universal structural patterns in known constructions.
+We have proven R(B_{n-1}, B_n) = 4n-1 for all n where m = 2n-1 is a prime power ≡ 1 mod 4 (Paley construction). The verified range extends continuously through n ≤ 31. The next step toward proving the conjecture for ALL n is to handle primes p ≡ 3 mod 4, which would give a second infinite family. Combined with Paley, this covers all n where 2n-1 is prime — a positive-density set.
 
-**Next frontier cases:**
-- n=24 (m=47, prime ≡ 3 mod 4) — same type as n=22; informed SA likely works
-- n=25 (m=49=7², prime power ≡ 1 mod 4) — Paley over GF(49) should work
-- n=23 (m=45=9×5, composite) — hardest near-term target; may need new construction family
-- General n — the ultimate goal; requires a universal construction or new proof technique
+**Why this path over extending verified range:** Each SA verification is independent and doesn't generalize. The key lemma, if proven, handles infinitely many cases at once. The empirical data strongly suggests it's true: the normalized difficulty *decreases* with n.
 
-**Key insight from n=22:** The breakthrough came from analyzing known solutions to discover universal patterns (D22=complement(D11), 0∈D12, degrees {m, m-2}), then constraining the SA search accordingly. The solution was found in ~370K iterations.
+**Literature:** Wesley (2025) independently proved the same Paley family. The p ≡ 3 mod 4 case is **open in the literature**. Our V1V2 theorem and V2V2 reduction go beyond published results.
 
----
+## The Key Lemma
 
-## Team: `ramsey-attack`
+For prime p ≡ 3 mod 4, there exist:
+- Symmetric D11 ⊂ {1,...,p-1} with |D11| = (p+1)/2
+- D12 ⊂ Z_p with |D12| = (p-1)/2, 0 ∈ D12
 
-### Team Lead (coordinator)
-Me. Assigns tasks, routes results between agents, makes strategic decisions, synthesizes findings.
+Such that all four constraints hold (where A(d) = Delta(D11,D11,d), B(d) = Delta(D12,D12,d)):
 
-### Agent 1: `researcher`
-**Role:** Pattern analysis, algebraic theory, and proof strategy.
-**subagent_type:** `general-purpose`
+| Constraint | Condition | Threshold | Binding? |
+|-----------|-----------|-----------|----------|
+| V1V1 red | d ∈ D11 | A(d)+B(d) ≤ (p-3)/2 | YES |
+| V1V1 blue | d ∉ D11 | A(d)+B(d) ≤ (p+1)/2 | loose |
+| V2V2 blue | d ∈ D11 | A(d)+B(p-d) ≤ (p-3)/2 | YES |
+| V2V2 red | d ∉ D11 | A(d)+B(p-d) ≤ (p+3)/2 | loose |
 
-Combines the analytical and theoretical workstreams. Responsible for:
-- Deep structural analysis of all known constructions (n=6..22), including spectral properties, cyclotomic class membership, and D12 structure
-- Formulating algebraic conjectures about what determines D11 and D12
-- Studying composite m cases (CRT decomposition over Z_9 × Z_5 for n=23, etc.)
-- Pursuing the "Delta fluctuation" proof — can we show that for symmetric subsets of Z_p with |D11|=(p+1)/2, the Delta function always fluctuates enough?
-- Literature search for recent progress (Wesley 2024, Lidicky et al. 2024 updates)
-- Writing a formal proof outline partitioning all n by proof method
-- Reporting structural constraints to `solver` to inform searches
+The binding constraints require A(d)+B(d) and A(d)+B(p-d) both ≤ (p-3)/2 for d ∈ D11. The average A(d)+B(d) ≈ (p-1)/2, so this asks for values ~1 below average — but with std ~0.3√p growing, this becomes proportionally easier for larger p.
 
-**Key files:** `analyze_known.py`, `ramsey_core.py`, `solution_n22.json`, `docs/EXPERIMENT_LOG.md`, `ramsey-book-graphs.pdf`
+## The Core Difficulty
 
-### Agent 2: `solver`
-**Role:** Computational construction search for specific n values.
-**subagent_type:** `general-purpose`
+A naive probabilistic argument (random D12) fails because:
+- E[B(d)] ≈ (p-3)/4, and A(d) ≈ (p+1)/4 on average
+- So E[A(d)+B(d)] ≈ (p-1)/2 = threshold + 1
+- Each constraint violates with probability ≈ 1/2 - O(1/√p)
+- Expected violations ≈ p/4 → union bound diverges
 
-Responsible for:
-- Generalizing `sa_n22_informed.py` into a parameterized solver for arbitrary n
-- Solving n=24 (m=47) using informed SA with universal pattern constraints
-- Implementing GF(49) Paley construction for n=25
-- Attacking n=23 (m=45) via informed SA, CRT-aware search, and dihedral Cayley alternatives
-- Running long SA searches as background tasks
-- Incorporating new constraints from `researcher` findings
-
-**Key files:** `sa_n22_informed.py`, `solver_heuristic.py`, `ramsey_core.py`, `cayley_dihedral.py`
-
-### Agent 3: `validator`
-**Role:** Independent verification and correctness guarantees.
-**subagent_type:** `general-purpose`
-
-Responsible for:
-- Generalizing `validate_n22_full.py` into a standalone validator for arbitrary n
-- Independently verifying every claimed construction (brute-force O(N³) check, zero dependency on ramsey_core.py)
-- Cross-validating formula implementations (Delta/Sigma fast formulas vs adjacency matrix)
-- Computationally verifying theoretical claims from `researcher`
-- Maintaining a solutions registry (JSON) tracking all verified results
-- Running `test_core.py` and extending it for new n values
-
-**Key files:** `validate_n22_full.py`, `test_core.py`, `ramsey_core.py`
+The proof must exploit **structure**: either the negative correlation between D11 membership and A(d), or an algebraic/spectral property of a carefully chosen (D11, D12) pair.
 
 ---
 
-## Task Phases
+## Implementation Plan
 
-### Phase 1: Foundation (all parallel)
+### Phase 1: Exhaustive Enumeration for Small Primes
 
-| Task | Agent | Description |
-|------|-------|-------------|
-| Generalize solver | solver | Parameterize `sa_n22_informed.py` for arbitrary n with auto-detected pattern constraints |
-| Generalize validator | validator | Parameterize `validate_n22_full.py` for arbitrary n, standalone |
-| Deep pattern analysis | researcher | Analyze all known constructions (n=6..22): spectral properties, D12 structure, cyclotomic classes. Categorize all n≤50 by proof method |
+**File:** `ramsey-book-graphs/enumerate_solutions.py`
 
-### Phase 2: Extend Verified Range (sequential pipeline per n)
+For p = 7, 11, 19 (n = 4, 6, 10), the search space is small enough for complete enumeration of ALL valid (D11, D12) pairs.
 
-**n=24 (highest priority — same type as n=22):**
-1. `solver` runs informed SA for n=24
-2. `validator` verifies the solution
-3. `researcher` incorporates into pattern analysis
+**Algorithm:**
+- p=7: 3 symmetric D11 choices × 10 D12 choices = 30 total → trivial
+- p=11: 10 D11 × 210 D12 = 2,100 → trivial
+- p=19: 126 D11 × 43,758 D12 ≈ 5.5M → feasible with fast Delta evaluation
 
-**n=25 (Paley — should be straightforward):**
-1. `solver` implements GF(49) construction
-2. `validator` verifies
+**Data to collect per valid pair:**
+- Power spectrum P(k) = |D̂11(k)|² + |D̂12(k)|²
+- How close P(k) is to the "Legendre pair" value p (flat spectrum)
+- Phase relationship between D̂11(k) and D̂12(k)
+- Cyclotomic class distribution of D11 and D12
+- |D12 ∩ D12^T| (asymmetry measure)
 
-**n=23 (hard — composite m):**
-1. `researcher` analyzes Z_45 algebraic structure, sends constraints to solver
-2. `solver` tries informed SA, CRT decomposition, dihedral Cayley
-3. `validator` verifies (if found)
+**Key question answered:** For each D11, how many valid D12 exist? Do ALL symmetric D11 admit a valid D12, or only special ones? This determines whether we prove the universal or existential version of the lemma.
 
-### Phase 3: General Proof (parallel with Phase 2)
+### Phase 2: Statistical Sampling for Medium Primes
 
-| Task | Agent | Description |
-|------|-------|-------------|
-| Prime p≡3(4) proof | researcher | Formalize the Delta fluctuation argument: prove existence of good D11/D12 for all such primes |
-| Composite construction | researcher | Develop construction family for composite m using CRT or extension fields |
-| Proof outline | researcher | Write structured proof covering all cases, identifying proven vs open lemmas |
-| Verify theory claims | validator | Computationally check conjectures for n≤30 |
+**File:** `ramsey-book-graphs/sample_d12_space.py`
 
-### Phase 4: Synthesis
+For p = 23, 31, 43, 47, 59 (where we already have SA solutions):
 
-Team lead combines computational results (extended verified range) and theoretical progress (proof outline, new infinite families) into a coherent output.
+1. **Fix the known D11** → sample 10⁶ random D12 of correct size containing 0
+   - Measure: fraction with zero violations, violation cost distribution
+   - Answer: is valid D12 "rare" (1 in 10⁶) or "common" (1 in 100)?
+
+2. **Random D11 survey** → sample 1000 random symmetric D11, for each sample 10⁴ D12
+   - Answer: does D11 choice matter? Are some D11 much better than others?
+
+3. **Spectral correction analysis** → for the known valid pairs, compute the "residual spectrum" R(k) = P(k) - |D̂11(k)|² that D12 provides
+   - Answer: does D12's spectrum "correct" D11's spectrum toward flatness?
+
+### Phase 3: Correlation Structure Analysis
+
+**File:** `ramsey-book-graphs/correlation_analysis.py`
+
+The make-or-break question for the probabilistic proof: are the bad events (B_d for d ∈ D11) positively or negatively correlated?
+
+For each prime p up to ~100:
+1. Fix a known D11
+2. Compute the exact covariance matrix Cov(B(d), B(d')) for d, d' ∈ D11 under uniformly random D12
+3. Compute the joint probability Pr[all constraints satisfied] using:
+   - Multivariate normal approximation with the exact covariance
+   - Direct Monte Carlo (for small p)
+4. Compare to what union bound / LLL would predict
+
+**If negative correlation:** The bad events tend NOT to co-occur → proof via FKG inequality or second moment method should work.
+
+**If positive correlation:** Need to understand the dependency graph for LLL, or abandon the probabilistic approach.
+
+### Phase 4: Proof Attempt
+
+Based on findings from Phases 1-3, pursue the most promising approach:
+
+**Approach A (probabilistic, if correlations are favorable):**
+
+File: `ramsey-book-graphs/prob_existence.py`
+
+1. Choose D12 via a **structured random construction** (not uniform):
+   - Define D12 as a "spectral corrector" — choose D12 so |D̂12(k)|² ≈ T(k) where T(k) is computed from D11
+   - This biases D12 toward satisfying the constraints while remaining random enough for concentration arguments
+2. Prove tail bound: Pr[B(d) > threshold - A(d)] ≤ exp(-c·f(p)) for each d ∈ D11
+3. Union bound over |D11| = (p+1)/2 constraints: works if c·f(p) > log(p)
+4. This gives "for all p ≥ p₀" existence; SA covers p < p₀
+
+**Approach B (algebraic, if Phase 1 reveals structure):**
+
+File: `ramsey-book-graphs/algebraic_p3mod4.py`
+
+1. For p ≡ 3 mod 4, construct D11 using cyclotomic classes:
+   - D11 consists of (p+1)/4 negation pairs {d, p-d} from {1,...,p-1}
+   - Choose pairs based on index (discrete log) mod small numbers
+2. Derive D12 algebraically from D11 (recipe from Phase 1 enumeration patterns)
+3. Verify computationally for all p ≡ 3 mod 4 up to p ~ 500
+4. Prove the construction works using character sum estimates (Weil bound, etc.)
+
+**Approach C (Legendre pair connection):**
+
+File: `ramsey-book-graphs/legendre_relaxation.py`
+
+1. Our constraint is a relaxation of the Legendre pair condition: we need |D̂11(k)|² + |D̂12(k)|² to produce bounded fluctuations, not exact constancy
+2. Start with "approximate Legendre pairs" from the literature (Djokovic-Kotsireas)
+3. Show the approximation error is within our tolerance
+4. This connects to supplementary difference sets — existing constructions may apply
+
+### Phase 5: Verification & Assembly
+
+**SA extension:** Push verified range to cover all primes p ≡ 3 mod 4 below whatever p₀ the proof requires (run `fast_sa_general.py` for p = 67, 71, 79, 83).
+
+**Independent verification:** Every construction (SA or algebraic) verified by `validate_construction.py`.
+
+**Proof document:** Update `docs/proof_outline.md` with the new theorem covering p ≡ 3 mod 4.
 
 ---
 
-## Coordination Patterns
+## Execution Order
 
-1. **Solver → Validator pipeline:** Every claimed solution goes to `validator` before being reported as confirmed
-2. **Researcher → Solver feedback:** New structural constraints discovered by `researcher` are sent to `solver` to narrow searches (this was the n=22 breakthrough pattern)
-3. **Cross-validation:** Mathematical claims from `researcher` are sent to `validator` for computational checking — critical since all reasoning is AI-generated
-4. **Background computation:** Long SA/SAT runs launched as background tasks by `solver`; solver works on other cases while waiting
+| Step | Phase | Description | Dependencies |
+|------|-------|-------------|-------------|
+| 1 | 1 | Exhaustive enumeration (p=7,11,19) | None |
+| 2 | 2 | D12 sampling for known solutions (p=23,31,43,47,59) | None |
+| 3 | 2 | Random D11 survey | None |
+| 4 | 3 | Correlation structure analysis | Steps 1-2 inform interpretation |
+| 5 | 4 | Proof attempt (approach chosen based on 1-4) | Steps 1-4 |
+| 6 | 5 | SA extension + verification | Step 5 determines p₀ |
 
----
+Steps 1-3 can run **in parallel**. Step 4 can start as soon as 1-2 produce data. The proof approach (step 5) is chosen based on empirical results.
 
-## Verification
+## Critical Files
 
-- Every construction verified by standalone brute-force validator (no shared code dependency)
-- `test_core.py` run to confirm core library integrity
-- Theoretical claims checked computationally where possible
-- Solutions stored in JSON with provenance metadata
+| File | Role |
+|------|------|
+| `ramsey_core.py` | Delta, Sigma, verify_construction — foundation |
+| `fourier_constraints.py` | Fourier analysis, character sums — template for spectral code |
+| `fast_sa_general.py` | SA solver — extend for new primes |
+| `validate_construction.py` | Independent brute-force validator |
+| `docs/proof_outline.md` | Proof document to update |
+
+## Success Criteria
+
+- **Minimum:** Identify the correct proof approach with strong computational evidence
+- **Target:** Prove the key lemma for all p ≡ 3 mod 4 with p ≥ p₀, verify SA constructions for p < p₀
+- **Stretch:** Find an algebraic construction that works for ALL p ≡ 3 mod 4 (no SA needed)

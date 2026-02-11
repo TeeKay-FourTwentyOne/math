@@ -1,0 +1,37 @@
+{
+  "11": {
+    "max_pr_d11": 0.739108,
+    "max_pr_d22": 0.262204,
+    "lll_quantity": 20.09103845668708,
+    "lll_satisfied": false,
+    "all_valid_rate": 0.095058
+  },
+  "19": {
+    "max_pr_d11": 0.681896,
+    "max_pr_d22": 0.682292,
+    "lll_quantity": 33.38391501545362,
+    "lll_satisfied": false,
+    "all_valid_rate": 0.000428
+  },
+  "23": {
+    "max_pr_d11": 0.664838,
+    "max_pr_d22": 0.665242,
+    "lll_quantity": 39.78293528281054,
+    "lll_satisfied": false,
+    "all_valid_rate": 0.000292
+  },
+  "31": {
+    "max_pr_d11": 0.643312,
+    "max_pr_d22": 0.862984,
+    "lll_quantity": 70.37501176352701,
+    "lll_satisfied": false,
+    "all_valid_rate": 0.0
+  },
+  "43": {
+    "max_pr_d11": 0.8229753437852063,
+    "max_pr_d22": 0.6216212729727638,
+    "lll_quantity": 93.95731473580881,
+    "lll_satisfied": false,
+    "all_valid_rate": 0.0
+  }
+}
