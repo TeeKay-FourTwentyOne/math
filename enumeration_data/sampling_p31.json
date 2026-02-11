@@ -1,0 +1,67 @@
+{
+  "summary": {
+    "p": 31,
+    "n": 16,
+    "working": 0,
+    "total_d11": 100,
+    "fraction_working": 0.0,
+    "elapsed": 537.3212938308716
+  },
+  "known_result": {
+    "type": "known",
+    "D11": [
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      14,
+      15,
+      16,
+      17,
+      19,
+      20,
+      21,
+      23,
+      24,
+      25
+    ],
+    "max_A": 8,
+    "num_valid": 0,
+    "total_sampled": 500000,
+    "rate": 0.0,
+    "E_valid": 0.0,
+    "ratio": 0.0,
+    "marginal_rate_min": 0.356688,
+    "marginal_rate_max": 0.967504,
+    "marginal_rate_mean": 0.720762
+  },
+  "working_results": [],
+  "max_A_dist": {
+    "9": {
+      "total": 23,
+      "working": 0
+    },
+    "8": {
+      "total": 6,
+      "working": 0
+    },
+    "10": {
+      "total": 35,
+      "working": 0
+    },
+    "11": {
+      "total": 28,
+      "working": 0
+    },
+    "12": {
+      "total": 6,
+      "working": 0
+    },
+    "13": {
+      "total": 2,
+      "working": 0
+    }
+  }
+}

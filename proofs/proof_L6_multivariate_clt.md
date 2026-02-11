@@ -1,7 +1,22 @@
 # Proof of Lemma L6: Joint Probability Bound via Multivariate CLT
 
 **Date**: 2026-02-10
-**Status**: Complete
+**Status**: INVALID — Slepian sign error (see below)
+
+> **CRITICAL ERROR (identified 2026-02-10):** The application of Slepian's inequality
+> in Section 6 has the sign backwards. For Gaussians with negative pairwise correlation
+> (ρ < 0), Slepian gives Pr[all Z_i ≤ t_i] **≤** ∏Pr[Z_i ≤ t_i], NOT ≥.
+> Concrete check: Z₁,Z₂ ~ N(0,1) with ρ=-0.5, t=0: Pr[both ≤ 0] = 1/6 < 1/4 = ∏Pr[≤0].
+>
+> **What remains valid:** Sections 3-4 (marginal CLT, covariance structure, equi-covariance,
+> eigenvalue analysis) are all correct and used elsewhere in the proof.
+>
+> **What is invalidated:** Sections 5-8 (the Slepian-based joint probability bound and
+> the proof of the main theorem via Slepian). The observed positive association (ratios
+> 4.7x to 131x) is a non-Gaussian phenomenon that cannot be captured by any argument
+> going through pairwise covariances and Gaussian approximation.
+>
+> **Replacement:** See proof_L6_conditioning.md (in progress) and L6_recovery_tasks.md.
 
 ---
 

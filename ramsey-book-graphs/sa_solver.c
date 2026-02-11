@@ -528,6 +528,71 @@ static int solve(int d11_size, int seed, int max_iter) {
     double elapsed = (ts_now.tv_sec - ts_start.tv_sec) +
                    (ts_now.tv_nsec - ts_start.tv_nsec) * 1e-9;
     printf("  seed=%d: best=%d (%.1fs)\n", seed, best_cost, elapsed);
+
+    /* Dump diagnostic info for near-solutions */
+    if (best_cost > 0 && best_cost <= 8) {
+        /* Restore best state */
+        memcpy(D11, best_D11, sizeof(int) * M);
+        memcpy(D12, best_D12, sizeof(int) * M);
+        memset(D12T, 0, sizeof(int) * M);
+        for (int i = 0; i < M; i++)
+            if (D12[i]) D12T[mod_neg[i]] = 1;
+        compute_delta_full(D11, delta_11);
+        compute_delta_full(D12, delta_12);
+        compute_delta_full(D12T, delta_12T);
+
+        int d11_sz = 0, d12_sz = 0;
+        for (int i = 0; i < M; i++) { d11_sz += D11[i]; d12_sz += D12[i]; }
+        int d22_sz = M - 1 - d11_sz;
+        int d1 = d11_sz + d12_sz, d2 = d22_sz + d12_sz;
+
+        printf("  VIOLATIONS (V1V1+V2V2):\n");
+        for (int d = 1; d < M; d++) {
+            int cv11 = delta_11[d] + delta_12[d];
+            if (D11[d]) {
+                int excess = cv11 - RED_THRESH;
+                if (excess > 0) printf("    V1V1 red d=%d: cv=%d thresh=%d excess=%d\n", d, cv11, RED_THRESH, excess);
+            } else {
+                int bc = (N_TOTAL - 2) - 2 * d1 + cv11;
+                int excess = bc - BLUE_THRESH;
+                if (excess > 0) printf("    V1V1 blue d=%d: bc=%d thresh=%d excess=%d\n", d, bc, BLUE_THRESH, excess);
+            }
+            int d22d = delta_11[d] + (M - 2 - 2 * d11_sz) + 2 * D11[d];
+            int cv22 = d22d + delta_12T[d];
+            if (!D11[d]) {
+                int excess = cv22 - RED_THRESH;
+                if (excess > 0) printf("    V2V2 red d=%d: cv=%d thresh=%d excess=%d\n", d, cv22, RED_THRESH, excess);
+            } else {
+                int bc = (N_TOTAL - 2) - 2 * d2 + cv22;
+                int excess = bc - BLUE_THRESH;
+                if (excess > 0) printf("    V2V2 blue d=%d: bc=%d thresh=%d excess=%d\n", d, bc, BLUE_THRESH, excess);
+            }
+        }
+
+        /* Also check V1V2 on this state */
+        int v12 = verify_v1v2();
+        printf("  V1V2 cost on best state: %d\n", v12);
+
+        /* Dump D11 and D12 as JSON for analysis */
+        if (best_cost == 4) {
+            char fname[256];
+            snprintf(fname, sizeof(fname), "/tmp/near_n%d_seed%d.json", N_PARAM, seed);
+            FILE *fp = fopen(fname, "w");
+            if (fp) {
+                fprintf(fp, "{\"n\": %d, \"m\": %d, \"cost\": %d,\n", N_PARAM, M, best_cost);
+                fprintf(fp, " \"D11\": [");
+                for (int i = 0, first = 1; i < M; i++)
+                    if (best_D11[i]) { if (!first) fprintf(fp, ", "); fprintf(fp, "%d", i); first = 0; }
+                fprintf(fp, "],\n \"D12\": [");
+                for (int i = 0, first = 1; i < M; i++)
+                    if (best_D12[i]) { if (!first) fprintf(fp, ", "); fprintf(fp, "%d", i); first = 0; }
+                fprintf(fp, "]}\n");
+                fclose(fp);
+                printf("  Dumped near-solution to %s\n", fname);
+            }
+        }
+    }
+
     fflush(stdout);
 
     return best_cost;
