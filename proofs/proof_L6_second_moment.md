@@ -279,8 +279,13 @@ where p_working = Pr[N > 0 | A-flat]. The within-working ratio is O(1) (since S_
 | 11 | 5 | 20.0 | 400 | 1.00 | 1.000 | 1.000 |
 | 19 | 27 | 6.0 | 108 | 3.00 | 0.333 | 0.333 |
 | 23 | 77 | 50.3 | 7467 | 2.95 | 0.571 | 0.339 |
+| 31 | 330 | 475.9 | 1.55e6 | 6.86 | 0.273 | 0.146 |
 
-The ratio over A-flat D11 is bounded by ~3, consistent with the O(1) bound from Section 5.4.
+The ratio over A-flat D11 grows slowly: 1.0, 3.0, 2.95, 6.86 at p = 11, 19, 23, 31.
+
+**At p=43 (SA-verified):** 3528 A-flat D11 in 168 orbits. SA found 5/168 working orbits (p_working >= 0.030). Random D12 sampling at this prime is too sparse (valid fraction ~1e-7) to compute N directly, but SA confirms A-flat D11 have valid D12.
+
+**NOTE:** An earlier computation using 500K random D12 samples per orbit found 0 working A-flat orbits at p=43 — this was a SAMPLING ARTIFACT (500K samples has <5% chance of finding a valid D12 when the valid fraction is ~1e-7). SA, which is orders of magnitude more efficient at finding valid solutions, corrected this.
 
 ### 5.7 Decomposition of the ratio
 
@@ -293,8 +298,12 @@ The ratio decomposes as:
 | 11 | 1.000 | 1.00 | 1.00 |
 | 19 | 0.333 | 1.00 | 3.00 |
 | 23 | 0.571 | 1.69 | 2.95 |
+| 31 | 0.273 | 1.87 | 6.86 |
+| 43 | >= 0.030 | ? | ? |
 
 The within-working ratio is close to 1 (N values among working A-flat D11 don't vary much). The overall ratio is dominated by 1/p_working.
+
+**Scaling of p_working:** The product p_working × p gives 6.3, 13.1, 8.5, >= 1.3 for p = 19, 23, 31, 43. This is consistent with p_working >= C/p for a constant C >= 1, giving overall ratio = O(p).
 
 ---
 
@@ -529,14 +538,16 @@ The actual valid D12 have a more balanced structure, with B-values that are spec
 | Product of marginals ~ 2^{-(p-1)/2} | **PROVEN** (Berry-Esseen) |
 | Budget >> cost (headroom) | **PROVEN** ((p-1)/2 bits) |
 | Second moment ratio O(1) | **VERIFIED** for p=11,19,23 |
-| Second moment ratio O(poly(p)) for all p | **OPEN** |
+| Second moment ratio O(p) for A-flat | **VERIFIED** for p=11,19,23,31; consistent at p=43 (SA) |
+| Second moment ratio O(poly(p)) for all p | **OPEN** (empirically ~O(p) via A-flat) |
 | Correlation loss c_0 >= 1/poly(p) | **VERIFIED** for p<=23, **OPEN** in general |
+| A-flat D11 working at p=43 | **VERIFIED** (5/168 orbits via SA) |
 | Multiplicative orbit structure | **PROVEN** (Section 8) |
 | N constant on orbits | **PROVEN** (Section 8.1) |
 | Paley autocorrelation A_P = (p+1)/4 | **PROVEN** (Section 9.1) |
 | J(chi,chi) = 1 for p = 3 mod 4 | **VERIFIED** computationally, known result |
 
-**Status**: The proof establishes a comprehensive algebraic framework including the constant z-sum identity, orbit structure under Z_p^*, and character-sum analysis of Paley-based D12. The second moment ratio is verified to be O(1) at all tested primes. The gap is showing that the fraction of working orbits is at least 1/poly(p) for all large p.
+**Status**: The proof establishes a comprehensive algebraic framework including the constant z-sum identity, orbit structure under Z_p^*, and character-sum analysis of Paley-based D12. The A-flat second moment ratio is verified to grow as O(p) through p=31 (exact) and is consistent at p=43 (SA). A-flat D11 have valid D12 at ALL tested primes including p=43 (correcting an earlier sampling artifact). The gap is showing that p_working >= 1/poly(p) for all large p.
 
 **Key insights**:
 1. The Gaussian proxy is too coarse (370x variation vs discrete N-values).

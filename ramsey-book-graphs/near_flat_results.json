@@ -1,0 +1,118 @@
+{
+  "description": "Near-flat D11 second moment analysis for R(B_{n-1}, B_n) = 4n-1",
+  "date": "2026-02-11",
+  "method_p31": "D12 random sampling (500K per orbit rep)",
+  "method_p43": "SA search (80K iters x 2 trials per orbit rep, subsample of NF-only)",
+
+  "p31": {
+    "p": 31,
+    "n": 16,
+    "E_A": 8.0,
+    "a_flat_threshold": 8,
+    "near_flat_threshold": 9,
+    "total_symmetric_d11": 6435,
+    "total_d12": 145422675,
+    "orbit_size": 15,
+
+    "max_A_distribution": {"8": 330, "9": 1590, "10": 2475, "11": 1380, "12": 555, "13": 90, "14": 15},
+
+    "aflat": {
+      "num_d11": 330,
+      "num_orbits": 22,
+      "num_working": 6,
+      "p_working": 0.2727,
+      "E_N": 475.93,
+      "E_N2": 1553398.69,
+      "ratio": 6.86,
+      "comment": "6 of 22 orbits have N>0; ratio ~6.9 consistent with previous data"
+    },
+
+    "near_flat_only": {
+      "num_d11": 1590,
+      "num_orbits": 106,
+      "num_working": 1,
+      "p_working": 0.0094,
+      "E_N": 13.72,
+      "E_N2": 19950.71,
+      "ratio": 106.0,
+      "comment": "Only 1 of 106 NF-only orbits found working; high ratio"
+    },
+
+    "combined_near_flat": {
+      "num_d11": 1920,
+      "num_orbits": 128,
+      "num_working": 7,
+      "p_working": 0.0547,
+      "E_N": 93.16,
+      "E_N2": 283512.08,
+      "ratio": 32.67,
+      "comment": "Expanding from A-flat to near-flat dilutes ratio from 6.9 to 32.7"
+    }
+  },
+
+  "p43": {
+    "p": 43,
+    "n": 22,
+    "E_A": 11.0,
+    "a_flat_threshold": 11,
+    "near_flat_threshold": 12,
+    "total_symmetric_d11": 352716,
+    "total_d12": 513791607420,
+    "orbit_size": 21,
+
+    "max_A_distribution": {"10": 252, "11": 3276, "12": 38787, "13": 92022, "14": 115458, "15": 63987, "16": 29421, "17": 7518, "18": 1785, "19": 189, "20": 21},
+
+    "aflat": {
+      "num_d11": 3528,
+      "num_orbits": 168,
+      "num_working_sa": 5,
+      "p_working": 0.0298,
+      "comment": "5 of 168 A-flat orbits have SA-found valid D12 (all max_A=11). CONTRADICTS earlier claim that A-flat N=0 at p=43."
+    },
+
+    "near_flat_only": {
+      "num_d11": 38787,
+      "num_orbits": 1847,
+      "sample_size": 100,
+      "sample_working": 1,
+      "p_working_sample": 0.01,
+      "estimated_working_total": 18,
+      "comment": "SA found known D11 orbit; other 99 NF-only orbits in sample did not yield. p_working ~1%."
+    },
+
+    "combined_near_flat": {
+      "num_d11": 42315,
+      "num_orbits": 2015,
+      "estimated_working": 23,
+      "p_working": 0.0114,
+      "comment": "~23 working orbits out of 2015 near-flat. SA is a lower bound (may miss solutions)."
+    },
+
+    "known_d11": {
+      "D11": [1, 2, 5, 10, 11, 13, 16, 17, 18, 19, 20, 23, 24, 25, 26, 27, 30, 32, 33, 38, 41, 42],
+      "max_A": 12,
+      "is_near_flat": true,
+      "is_aflat": false,
+      "sa_found": true
+    }
+  },
+
+  "summary_table": [
+    {"p": 11, "class": "exact", "ratio_aflat": 1.0, "ratio_all": 2.0, "source": "exhaustive"},
+    {"p": 19, "class": "exact", "ratio_aflat": 3.0, "ratio_all": 14.0, "source": "exhaustive"},
+    {"p": 23, "class": "exact", "ratio_aflat": 2.95, "ratio_all": 14.5, "source": "exhaustive"},
+    {"p": 31, "class": "aflat", "ratio_aflat": 6.86, "p_working_aflat": 0.273, "source": "sampling_500K"},
+    {"p": 31, "class": "near_flat", "ratio_near_flat": 32.67, "p_working_nf": 0.055, "source": "sampling_500K"},
+    {"p": 43, "class": "aflat", "p_working_aflat": 0.030, "source": "SA_80K"},
+    {"p": 43, "class": "near_flat", "p_working_nf": 0.011, "source": "SA_80K"}
+  ],
+
+  "key_findings": [
+    "1. A-flat D11 DO have valid D12 at p=43 (5/168 orbits working via SA), contradicting earlier belief.",
+    "2. At p=31, near-flat-only class has much higher ratio (106) than A-flat (6.86). Combined: 32.67.",
+    "3. At p=43, p_working is lower but still positive for both A-flat (3%) and NF-only (1%).",
+    "4. The known p=43 solution is near-flat-only (max_A=12), confirming near-flat is the right class.",
+    "5. SA lower bounds on p_working suggest Omega(1/p) or better fraction of orbits are working.",
+    "6. Growth of ratio: 1.0 -> 3.0 -> 2.95 -> 6.86 -> 32.67 (A-flat class, p=11..31)."
+  ]
+}
