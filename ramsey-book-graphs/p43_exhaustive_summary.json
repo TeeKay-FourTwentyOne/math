@@ -1,0 +1,16 @@
+{
+  "p": 43,
+  "total_orbits": 16796,
+  "orbits_tested": 16796,
+  "working_orbits": 124,
+  "p_working": 0.007383,
+  "p_times_p_working": 0.3175,
+  "sa_config": {
+    "trials_per_orbit": 10,
+    "iterations_per_trial": 1500000,
+    "start_temp": 8.0,
+    "cooling_rate_formula": "exp(log(0.0001/8.0)/iter)"
+  },
+  "elapsed_seconds": 16121.3,
+  "threads": 10
+}
