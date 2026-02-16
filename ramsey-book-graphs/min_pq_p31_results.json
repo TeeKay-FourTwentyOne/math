@@ -1,0 +1,11 @@
+{
+  "p": 31,
+  "k": 15,
+  "total_subsets": 300540195,
+  "distinct_profiles": 4749107,
+  "min_PQ": 51.9760729686,
+  "max_PQ": 3.541692e+35,
+  "below_1": 0,
+  "min_PQ_gt_1": true,
+  "log2_min_PQ": 5.699776
+}

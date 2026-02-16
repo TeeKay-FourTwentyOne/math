@@ -11,7 +11,7 @@
 #include <math.h>
 #include <time.h>
 
-#define MAX_M 200
+#define MAX_M 600
 
 static int P, N_PARAM, M, N_TOTAL;
 static int RED_THRESH, BLUE_THRESH;
