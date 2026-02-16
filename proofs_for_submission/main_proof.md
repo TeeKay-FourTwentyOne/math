@@ -328,7 +328,10 @@ Under Q, each hat(B)(j) = k + 2Σ B(d)cos(2πjd/p) is a sum of k iid terms.
 
 **Variance:** Var[hat(B)(j)] = 4σ²_B × Σ cos²(2πjd/p) ≈ 2kσ²_B.
 
-**Z-score:** z = (k+1)/2 / √(2kσ²_B) → √6/2 ≈ 1.225 as p → ∞.
+**Z-score:** z = (k+1)/2 / √(2kσ²_B). As p → ∞, σ²_B → k/8 (from the
+Gaussian approximation to f with f_mode = 2/√(πk)), giving z → 1. For small p,
+z is larger (z = √6/2 ≈ 1.225 at p = 11), so the achievable fraction is best
+at small p and worst asymptotically.
 
 **Slepian bound (for Gaussian approximation):** The DFT values have pairwise
 correlation -1/k (negative). By Slepian's inequality for Gaussian vectors with
@@ -336,13 +339,13 @@ non-positive off-diagonal correlations:
 
   Pr[all hat(B)(j) ≥ 0] ≥ Π_j Pr[hat(B)(j) ≥ 0] = Φ(z)^k
 
-where Φ is the standard normal CDF. At z ≈ 1.225: Φ(z) ≈ 0.890.
+where Φ is the standard normal CDF. As z → 1: Φ(1) ≈ 0.8413.
 
-**Achievability correction:** log₂(ach_fraction) ≥ k × log₂(Φ(z)) ≈ -0.168k.
+**Achievability correction:** log₂(ach_fraction) ≥ k × log₂(Φ(z)) → -0.249k.
 
-**Corrected asymptotic:** improved - 0.168k = R((1/2)log₂(πk) - c**) + O(√p)
-where c** = c* + 0.168 = 3.432. Positive when πk > 2^{2c**} = 2^{6.864} ≈ 116,
-i.e., k > 37, p > 77.
+**Corrected asymptotic:** improved - 0.249k = R((1/2)log₂(πk) - c**) + O(√p)
+where c** = c* + 0.249 = 3.514. Positive when πk > 2^{2c**} = 2^{7.028} ≈ 131,
+i.e., k > 42, p > 85.
 
 ### 9.4 Computational Verification of Corrected Margin
 
