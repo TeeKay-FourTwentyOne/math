@@ -2,9 +2,7 @@
 experiment_0/logit_traces/
 experiment_1/activations/
 
-# Experiment 1 outputs are large JSONL (top-5 logits per token per prompt)
-# Keep metadata files, exclude bulk data
-experiment_1/outputs/*.jsonl
+# Experiment 1 JSONL outputs tracked (needed for cross-platform comparison)
 
 # Override root *.csv exclusion — fragility_scores.csv is experiment data
 !prompts/*.csv
