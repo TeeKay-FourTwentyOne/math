@@ -1,0 +1,19 @@
+{
+  "platform_label": "H_nvidia",
+  "timestamp": "2026-04-04T17:54:45.629652",
+  "os": "Windows-11-10.0.26200-SP0",
+  "os_version": "10.0.26200",
+  "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+  "python_version": "3.13.7",
+  "pytorch_version": "2.8.0+cu126",
+  "transformers_version": "4.55.4",
+  "numpy_version": "2.3.2",
+  "cuda_available": true,
+  "gpu_name": "NVIDIA GeForce RTX 4070",
+  "gpu_memory_mb": 12281,
+  "gpu_compute_capability": "8.9",
+  "cuda_version": "12.6",
+  "cudnn_version": "91002",
+  "bf16_supported": true,
+  "nvidia_driver_version": "560.94"
+}
