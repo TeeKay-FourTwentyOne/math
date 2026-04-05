@@ -1,0 +1,11 @@
+{
+  "platform_label": "h_mac",
+  "device": "cpu",
+  "determinism_mode": "strict",
+  "model": "EleutherAI/pythia-410m-deduped",
+  "weight_hash_sha256": "60f93ca89c8b7decd1c0ff9a72b70d9648128f110264462681153c9e766771a9",
+  "max_new_tokens": 256,
+  "n_prompts": 400,
+  "precision": "fp32",
+  "timestamp": "2026-04-04T21:01:06"
+}

@@ -1,0 +1,16 @@
+{
+  "platform_label": "H_mac",
+  "timestamp": "2026-04-04T20:57:47.977682",
+  "os": "macOS-14.1-arm64-arm-64bit",
+  "os_version": "Darwin Kernel Version 23.1.0: Mon Oct  9 21:32:11 PDT 2023; root:xnu-10002.41.9~7/RELEASE_ARM64_T6030",
+  "processor": "arm",
+  "python_version": "3.11.7",
+  "pytorch_version": "2.8.0",
+  "transformers_version": "4.55.4",
+  "numpy_version": "1.26.4",
+  "cuda_available": false,
+  "mps_available": true,
+  "chip": "Apple M3 Pro",
+  "memory": "18 GB",
+  "bf16_supported": true
+}
