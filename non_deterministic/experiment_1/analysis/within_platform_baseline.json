@@ -1,0 +1,18 @@
+{
+  "platform": "H_nvidia",
+  "determinism_mode": "strict",
+  "total_prompts": 400,
+  "exact_match": 400,
+  "match_rate": 1.0,
+  "mean_token_agreement": 1.0,
+  "per_set": {
+    "experimental": {
+      "total": 200,
+      "match": 200
+    },
+    "control": {
+      "total": 200,
+      "match": 200
+    }
+  }
+}

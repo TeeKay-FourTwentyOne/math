@@ -1,0 +1,7 @@
+{
+  "model": "EleutherAI/pythia-410m-deduped",
+  "sha256": "60f93ca89c8b7decd1c0ff9a72b70d9648128f110264462681153c9e766771a9",
+  "platform": "H_nvidia",
+  "pytorch_version": "2.8.0+cu126",
+  "dtype": "float32"
+}

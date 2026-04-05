@@ -1,5 +1,6 @@
-# Binary artifacts (41 MB, reproducible by re-running experiment_0.py)
+# Binary artifacts (reproducible by re-running experiment scripts)
 experiment_0/logit_traces/
+experiment_1/activations/
 
 # Override root *.csv exclusion — fragility_scores.csv is experiment data
 !prompts/*.csv
