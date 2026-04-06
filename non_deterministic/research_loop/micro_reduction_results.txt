@@ -1,0 +1,65 @@
+======================================================================
+MICRO-BENCHMARK: FP Reduction Order Effects
+======================================================================
+
+--- TEST 1: Vector summation with different chunk sizes ---
+Sum 4096 random FP32 values using different groupings.
+
+Reference sum (FP64 sequential): -4.412261926801875
+Sequential FP32 (Python loop):   -4.412261926801875  diff=0.00e+00
+PyTorch CPU sum:                 -4.412249565124512  diff=1.24e-05
+PyTorch CUDA sum (deterministic): -4.412261962890625  diff=3.61e-08
+
+Chunked summation (sum chunks of size K, then sum the partial sums):
+ Chunk K               Result   Diff from ref  Diff from CUDA
+       1   -4.412249565124512        1.24e-05        1.24e-05
+       2   -4.412268638610840        6.71e-06        6.68e-06
+       4   -4.412254333496094        7.59e-06        7.63e-06
+       8   -4.412260055541992        1.87e-06        1.91e-06
+      16   -4.412261962890625        3.61e-08        0.00e+00
+      32   -4.412269592285156        7.67e-06        7.63e-06
+      64   -4.412260055541992        1.87e-06        1.91e-06
+     128   -4.412260055541992        1.87e-06        1.91e-06
+     256   -4.412260055541992        1.87e-06        1.91e-06
+     512   -4.412258148193359        3.78e-06        3.81e-06
+    1024   -4.412265777587891        3.85e-06        3.81e-06
+    2048   -4.412259101867676        2.82e-06        2.86e-06
+    4096   -4.412249565124512        1.24e-05        1.24e-05
+
+--- TEST 2: CUDA vs CPU reduction on same data ---
+Different vector sizes to see how error scales.
+
+    Size              CPU sum             CUDA sum       |Diff|     Rel diff
+      64         2.1007404327         2.1007394791     9.54e-07     4.54e-07
+     128        10.3938236237        10.3938245773     9.54e-07     9.18e-08
+     256        16.1386756897        16.1386756897     0.00e+00     0.00e+00
+     512        14.1779499054        14.1779479980     1.91e-06     1.35e-07
+    1024         8.9819717407         8.9819736481     1.91e-06     2.12e-07
+    2048        -2.2573900223        -2.2573933601     3.34e-06     1.48e-06
+    4096        -4.4122495651        -4.4122619629     1.24e-05     2.81e-06
+    8192        53.3069076538        53.3069229126     1.53e-05     2.86e-07
+   16384       149.7648010254       149.7648010254     0.00e+00     0.00e+00
+   65536        -3.0991821289        -3.0992279053     4.58e-05     1.48e-05
+
+--- TEST 3: Matrix multiplication CPU vs CUDA ---
+Simulates a single transformer layer's computation.
+
+    M     K     N   Max |diff|  Mean |diff|      Rel max
+    1  1024  1024     9.92e-05     1.24e-05     9.75e-07  hidden @ hidden (attention)
+    1  1024  4096     1.37e-04     1.47e-05     1.15e-06  hidden @ up_proj (MLP)
+    1  4096  1024     1.11e-04     1.96e-05     4.90e-07  mlp_out @ down_proj
+    1  1024 50304     1.75e-04     1.45e-05     1.12e-06  hidden @ lm_head (logits!)
+  256  1024  1024     6.87e-05     7.87e-06     4.23e-07  full seq @ hidden
+  256  1024 50304     2.59e-04     1.35e-05     1.49e-06  full seq @ lm_head
+
+--- TEST 4: Simulated logit computation (layernorm -> matmul -> top-k) ---
+Does the top-1 token ever change between CPU and CUDA?
+
+Logit differences across 256 positions x 50304 vocab:
+  Max:  0.000412
+  Mean: 0.000020
+  Top-1 token mismatches: 0/256
+
+  All tokens match. Closest call at position 15:
+    Margin: 0.003983, Max logit diff at that position: 0.000221
+    Safety factor: 18.0x
